@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Party Play JAA</title>
+<style>
+:root{color-scheme:dark;--bg:#101322;--panel:#1b2035;--line:#303852;--accent:#8b7cff;--text:#f4f5ff;--muted:#aab1cc}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#25294b,#101322 55%);color:var(--text)}
+header{padding:28px 18px;text-align:center}h1{margin:0;font-size:clamp(30px,6vw,48px)}header p{color:var(--muted);margin:8px auto;max-width:650px}
+main{max-width:1050px;margin:auto;padding:0 16px 40px}.panel{background:rgba(27,32,53,.92);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #0002}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}input,select,button,textarea{font:inherit;border-radius:10px;border:1px solid var(--line);padding:11px 13px;background:#111629;color:var(--text)}input,textarea{min-width:0}button{cursor:pointer;background:var(--accent);border:0;font-weight:650}button.secondary{background:#303852}button:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.game{padding:16px;border:1px solid var(--line);border-radius:14px;background:#151a2c}.game h3{margin:0 0 6px}.game p{color:var(--muted);font-size:14px;min-height:42px}.tag{font-size:12px;color:#c7c1ff;background:#302b56;padding:4px 8px;border-radius:99px}
+#status{color:#b8ffd7}.muted{color:var(--muted)}.big{font-size:28px;font-weight:800}.hidden{display:none}
+footer{text-align:center;color:var(--muted);padding:18px}
+</style>
+</head>
+<body>
+<header><h1>🎮 Party Play</h1><p>JAA · 多人派对游戏大厅（前端原型）</p></header>
+<main>
+<section class="panel">
+<h2>玩家与房间</h2>
+<div class="row"><input id="nick" maxlength="16" placeholder="输入昵称" value="玩家"><button class="secondary" onclick="saveNick()">保存昵称</button><span id="status">当前：本地演示模式</span></div>
+<hr style="border-color:var(--line);margin:18px 0">
+<div class="row"><button onclick="createRoom()">创建房间</button><input id="roomCode" maxlength="6" placeholder="房间码（6位）"><button class="secondary" onclick="joinRoom()">加入房间</button><button class="secondary" onclick="leaveRoom()">离开</button></div>
+<p class="muted">此版本先做单文件前端演示：房间和玩家暂存在当前浏览器。跨设备实时同步将在接入在线后端后实现。</p>
+<div id="roomInfo" class="hidden"><strong>房间：</strong><span id="roomLabel"></span>　<strong>玩家：</strong><span id="players">1</span><div class="row" style="margin-top:10px"><button class="secondary" onclick="copyCode()">复制房间码</button></div></div>
+</section>
+<section class="panel"><h2>选择游戏</h2><div class="grid">
+<div class="game"><span class="tag">2–8人</span><h3>🎨 你画我猜</h3><p>画板、猜词、倒计时与积分（此原型提供演示入口）。</p><button onclick="startGame('你画我猜')">进入游戏</button></div>
+<div class="game"><span class="tag">3 / 4人</span><h3>🃏 斗地主</h3><p>经典地主与农民玩法；正式牌型判定待后续实现。</p><button onclick="startGame('斗地主')">进入游戏</button></div>
+<div class="game"><span class="tag">2–6人</span><h3>🌈 UNO</h3><p>反转、跳过、+2、Wild、+4等规则模块入口。</p><button onclick="startGame('UNO')">进入游戏</button></div>
+<div class="game"><span class="tag">2–8人</span><h3>💣 数字炸弹</h3><p>范围猜数字、缩小区间、轮流猜的本地演示。</p><button onclick="startGame('数字炸弹')">开始游戏</button></div>
+<div class="game"><span class="tag">3–8人</span><h3>🧠 默契大考验</h3><p>回答问题、查看答案与简单匹配演示。</p><button onclick="startGame('默契大考验')">进入游戏</button></div>
+<div class="game"><span class="tag">4–8人</span><h3>🕵️ 谁是卧底</h3><p>词语、讨论与投票流程入口（本地演示）。</p><button onclick="startGame('谁是卧底')">进入游戏</button></div>
+</div></section>
+<section class="panel"><h2 id="gameTitle">游戏区域</h2><div id="gameArea" class="muted">先创建/加入房间，再选择游戏。</div></section>
+<section class="panel"><h2>接下来怎么做</h2><ol><li>先把这个 <code>index.html</code> 下载到设备。</li><li>上传到 GitHub 仓库 <code>JAA</code> 的根目录，文件名保持 <code>index.html</code>。</li><li>确认 GitHub Pages 能打开这个前端页面。</li><li>再创建 Supabase 项目，配置数据库与 Realtime，把房间、玩家、聊天、游戏状态接入服务端。</li><li>逐个补齐六款游戏的规则、回合状态、断线重连、房主权限与防作弊校验。</li></ol><p class="muted">诚实说明：当前文件是可打开的前端原型，不是完整联机成品；页面不会假装已实现跨设备多人。</p></section>
+</main><footer>Party Play JAA · 单文件 HTML · Prototype</footer>
+<script>
+let room=null, players=1, current='';const $=id=>document.getElementById(id);
+function saveNick(){let n=$('nick').value.trim();if(!n)n='玩家';$('nick').value=n;localStorage.setItem('pp_nick',n);alert('昵称已保存：'+n)}
+function makeCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
+function createRoom(){room=makeCode();players=1;$('roomCode').value=room;showRoom();$('status').textContent='已创建本地房间（演示）'}
+function joinRoom(){let c=$('roomCode').value.trim().toUpperCase();if(c.length<4){alert('请输入有效房间码');return}room=c;players=1;showRoom();$('status').textContent='已加入本地房间（演示）'}
+function showRoom(){$('roomInfo').classList.remove('hidden');$('roomLabel').textContent=room;$('players').textContent=players}
+function leaveRoom(){room=null;$('roomInfo').classList.add('hidden');$('status').textContent='当前：本地演示模式';$('gameArea').textContent='已离开房间。'}
+function copyCode(){if(!room)return;navigator.clipboard?.writeText(room).then(()=>alert('房间码已复制：'+room)).catch(()=>alert('房间码：'+room))}
+function startGame(name){if(!room){alert('请先创建或加入房间');return}current=name;$('gameTitle').textContent='🎯 '+name;$('gameArea').innerHTML='';if(name==='数字炸弹')bomb();else if(name==='默契大考验')quiz();else if(name==='谁是卧底')undercover();else if(name==='你画我猜')drawDemo();else $('gameArea').innerHTML='<p>这是 '+name+' 的游戏入口原型。完整规则和多人同步将在后续版本接入。</p><p class="muted">目前不会将此入口冒充为完整游戏。</p>'}
+function bomb(){let lo=1,hi=100,target=Math.floor(Math.random()*100)+1;let a=document.createElement('div');a.innerHTML='<p>范围：<b id="range">1 – 100</b></p><div class="row"><input id="guess" type="number" min="1" max="100" placeholder="输入猜测"><button id="guessBtn">猜！</button></div><p id="hint">猜一个数字（本地单人演示）</p>'; $('gameArea').append(a);$('guessBtn').onclick=()=>{let g=Number($('guess').value);if(!g)return;if(g===target){$('hint').textContent='🎉 猜中了！重新开始请重新进入游戏。';$('guessBtn').disabled=true}else{if(g<target)lo=Math.max(lo,g+1);else hi=Math.min(hi,g-1);$('range').textContent=lo+' – '+hi;$('hint').textContent=g<target?'太小了！':'太大了！'}}}
+function quiz(){let qs=['最适合聚会的零食是什么？','周末最想去哪？','哪种动物最像你的队友？'];let q=qs[Math.floor(Math.random()*qs.length)];$('gameArea').innerHTML='<h3>'+q+'</h3><textarea id="answer" placeholder="写下你的答案"></textarea><p><button onclick="alert(\'答案已记录在当前页面演示中\')">提交答案</button> <button class="secondary" onclick="startGame(\'默契大考验\')">换题</button></p>'}
+function undercover(){$('gameArea').innerHTML='<p>卧底词语分配与投票需要多人服务端才能公平进行。当前仅展示流程入口。</p><div class="row"><input id="wordA" placeholder="平民词（房主设置）"><input id="wordB" placeholder="卧底词"><button onclick="alert(\'词语设置仅为界面演示\')">设置词语</button></div><p class="muted">请勿在此原型中输入真实秘密信息。</p>'}
+function drawDemo(){$('gameArea').innerHTML='<p>本地画板演示（画面不会同步给其他设备）。</p><canvas id="canvas" width="700" height="320" style="width:100%;max-width:700px;background:#fff;border-radius:12px;touch-action:none"></canvas><div class="row"><button class="secondary" onclick="clearCanvas()">清空画板</button><label>颜色 <input id="color" type="color" value="#222222"></label></div>';let c=$('canvas'),ctx=c.getContext('2d'),on=false;ctx.lineWidth=4;ctx.lineCap='round';c.onpointerdown=e=>{on=true;ctx.beginPath();ctx.moveTo(e.offsetX*c.width/c.clientWidth,e.offsetY*c.height/c.clientHeight)};c.onpointerup=()=>on=false;c.onpointerleave=()=>on=false;c.onpointermove=e=>{if(!on)return;ctx.strokeStyle=$('color').value;ctx.lineTo(e.offsetX*c.width/c.clientWidth,e.offsetY*c.height/c.clientHeight);ctx.stroke()}}
+function clearCanvas(){let c=$('canvas');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height)}
+$('nick').value=localStorage.getItem('pp_nick')||'玩家';
+</script></body></html>
